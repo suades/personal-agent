@@ -71,9 +71,38 @@ interface ExecResult { ok: boolean; output?: unknown; error?: string; }
 
 interface BrowserHandle { close: () => Promise<void>; page: unknown; }
 
+/** Normalize action names — LLMs often output variations like "query" instead of "search.query" */
+function normalizeAction(action: string): string {
+  const map: Record<string, string> = {
+    'query': 'search.query',
+    'search': 'search.query',
+    'web_search': 'search.query',
+    'open': 'browser.open',
+    'goto': 'browser.goto',
+    'navigate': 'browser.goto',
+    'read': 'browser.read',
+    'read_page': 'browser.read',
+    'click': 'browser.click_text',
+    'click_text': 'browser.click_text',
+    'fill_form': 'browser.fill',
+    'download': 'browser.download',
+    'send_email': 'gmail.send',
+    'send': 'gmail.send',
+    'list_emails': 'gmail.list',
+    'create_event': 'calendar.create',
+    'list_events': 'calendar.list',
+    'list_folder': 'files.list',
+    'list_files': 'files.list',
+    'read_file': 'files.read',
+    'write_file': 'files.write',
+  };
+  return map[action] ?? action;
+}
+
 async function executeStep(step: WorkflowStep, ctx: { userId: string; browser?: BrowserHandle }): Promise<ExecResult> {
   try {
     const a = step.args ?? {};
+    step.action = normalizeAction(step.action);
     switch (step.action) {
       case 'search.query': {
         const r = await braveSearch(String(a.query));
@@ -237,10 +266,13 @@ export async function runAgentForUser(userId: string): Promise<{ completed: numb
         await maybeSaveWorkflow(userId, task, plan.steps);
         completed++; log.push('  ✓ completed');
       } else {
+        const failedStep = plan.steps[results.length - 1];
+        const failError = results.find(r => !r.ok)?.error ?? 'Unknown failure';
+        const detailedNote = `Failed at step: ${failedStep?.action ?? '?'}\nError: ${failError}\n\nFull plan was:\n${plan.steps.map((s, i) => `${i + 1}. ${s.action}(${JSON.stringify(s.args ?? {})})`).join('\n')}`;
         await supabase.from('tasks').update({
           status: 'needs_confirmation',
-          confirmation_prompt: 'Hit an error executing. Tap approve to retry, or skip.',
-          agent_note: results.find(r => !r.ok)?.error ?? 'Unknown failure',
+          confirmation_prompt: `Error during execution:\n\n${failError}\n\nStep: ${failedStep?.action ?? '?'}\n\nApprove to retry, or skip.`,
+          agent_note: detailedNote,
         }).eq('id', task.id);
         failed++;
       }
