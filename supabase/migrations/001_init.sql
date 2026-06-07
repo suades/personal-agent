@@ -1,5 +1,5 @@
 -- ============================================================
---  ToDo Agent — initial schema
+--  Personal Agent — initial schema
 -- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
