@@ -111,6 +111,27 @@ New tools/services get added as MCPs (Model Context Protocol connectors). The ag
 
 ---
 
+## 3b. Workflow Memory (Learning From You)
+
+The agent remembers how you like things done.
+
+**The use case:** You say *"Read the notes in my ML folder on the Desktop, write flashcards in the format `term, definition\n term, definition\n term, definition`, then push them to Quizlet."*
+
+The agent does it once. From then on, when you just say *"Make flashcards from my history folder"*, it knows:
+- Read the source notes
+- Use the same `term, definition\n` format
+- Push to Quizlet via browser automation
+
+**How it works:**
+- After every successful task, the agent abstracts the steps into a reusable workflow and saves it to the `workflows` table
+- Each workflow has a name (e.g. "make_flashcards"), trigger keywords (e.g. "flashcards", "study cards"), a parameter schema (e.g. `source_folder`), and an ordered list of steps (read files → format → push to Quizlet)
+- When a new task comes in, the agent first searches workflows for a match. If found, it fills in the parameters and runs the saved steps — no questions asked
+- If the user explicitly says "actually, this time use a different format," the agent creates a new variant workflow rather than overwriting
+
+**You always control:** A "Workflows" page lists every saved workflow. You can rename, edit, or delete any of them.
+
+---
+
 ## 4. Database Schema
 
 ```sql
@@ -145,6 +166,19 @@ CREATE TABLE connectors (
   status      TEXT CHECK (status IN ('connected', 'needs_setup')),
   config      JSONB,                -- Encrypted tokens, API keys
   added_at    TIMESTAMPTZ DEFAULT now()
+);
+
+-- Saved workflows (agent remembers how user likes things done)
+CREATE TABLE workflows (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name          TEXT NOT NULL,         -- e.g. 'make_flashcards'
+  description   TEXT,
+  trigger_keywords TEXT[],              -- ['flashcards', 'study cards', 'quizlet']
+  parameters    JSONB,                  -- {source_folder: 'string'}
+  steps         JSONB NOT NULL,         -- ordered list of step objects
+  created_at    TIMESTAMPTZ DEFAULT now(),
+  last_used_at  TIMESTAMPTZ,
+  use_count     INT DEFAULT 0
 );
 ```
 

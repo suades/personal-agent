@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/agent/run", "schedule": "0 4 * * *" },
+    { "path": "/api/cleanup", "schedule": "* * * * *" }
+  ]
+}
