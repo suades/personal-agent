@@ -89,7 +89,7 @@ Full spec with competitors, success metrics, and 50-task breakdown:
    - **Workflow Matching**: Modified `findMatchingWorkflow` to also receive this feedback string. The LLM evaluates if an existing saved workflow violates the negative feedback, preventing it from executing bad workflows.
 
 3. **Restricting Access (Auth Lock)**:
-   - **Decision**: Kept Supabase Magic Link auth but hardcoded an `ALLOWED_EMAIL` constant in `src/lib/constants.ts` (`suadesai17@gmail.com`).
+   - **Decision**: Kept Supabase Magic Link auth but restricted it to a single `ALLOWED_EMAIL` in `src/lib/constants.ts`, sourced from the `NEXT_PUBLIC_ALLOWED_EMAIL` env var.
    - **Why**: More secure than building custom password auth. You get Supabase RLS and real-time subscriptions for free.
    - **Implementation**: The restriction exists in two places. 1) Client-side on `/login` (prevents sending the email at all). 2) Server-side in `layout.tsx`/`page.tsx` (checks session email and forces sign out).
 

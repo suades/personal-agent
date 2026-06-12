@@ -12,7 +12,7 @@ export default async function Home() {
 
   // ── Server-side auth guard: even if someone bypasses the login page,
   //    they can't see the dashboard unless they're the allowed user. ──
-  if (user.email !== ALLOWED_EMAIL) {
+  if ((user.email ?? '').toLowerCase() !== ALLOWED_EMAIL) {
     await supabase.auth.signOut();
     redirect('/login');
   }

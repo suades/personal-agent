@@ -1,55 +1,194 @@
 # ToDo Agent
 
-Drop tasks. Agent does them at night. Free.
+**Drop tasks. An AI agent does them while you sleep.**
 
-A Trello-style task dashboard where an AI agent (DeepSeek R1 via OpenRouter) wakes up nightly, works through your priority queue, uses tools (Gmail, Calendar, web search, Playwright browser automation, local files), and leaves you plain-English notes. Tasks that need confirmation (purchases, missing credentials) move to a "Needs You" tab with one-click approve/skip.
+A Trello-style dashboard where you queue prioritized tasks, and an LLM-powered agent works
+through them autonomously using real tools — web search, browser automation, Gmail, Calendar,
+and local files. It writes plain-English reports with cited links, learns repeatable workflows,
+recovers from its own mistakes, and asks for help only when it genuinely needs it.
 
-**The agent learns your workflows.** Run a task once with a specific format/pipeline (e.g. read notes folder → format flashcards → push to Quizlet), and next time it recognizes a similar task it runs the saved steps without asking.
+Built to run entirely on free tiers. Target cost: **$0/month**.
 
-## Quick start
+---
 
-See [`SETUP.md`](./SETUP.md) — 15 minutes from clone to running.
+## Features
+
+- **Autonomous task execution** — dynamic tool selection across search, Playwright browser
+  automation, Gmail, Google Calendar, and the local file system.
+- **Real-time streaming** — watch the agent plan and act live (`Planning… → Searching… → Found 3…`).
+- **Self-healing recovery** — when a step fails, the agent reflects, replans, and tries a
+  different approach (up to twice) before asking you.
+- **Task decomposition** — big tasks ("plan my trip") split into ordered subtasks nested under a
+  parent card.
+- **Confidence scoring** — the agent rates each plan 0–100 and routes low-confidence tasks to you.
+- **Workflow learning** — do something once and it saves the procedure, matched later by
+  embedding similarity (with keyword fallback).
+- **Agent memory** — learns your preferences ("prefers Amazon", "ML notes are in ~/Desktop/ML")
+  and applies them on future tasks.
+- **Natural-language + voice input** — type or dictate "cheap flight to Miami next month, urgent"
+  and it fills in the task for you.
+- **LLM observability** — every model call is logged (tokens, latency, est. cost) with an
+  `/analytics` dashboard.
+- **Negative-feedback learning** — thumbs-down with a note and the agent avoids that mistake next time.
+- **Responsive UI** — tabbed on mobile, a 3-column board on desktop, with light animations.
+
+---
 
 ## Stack
 
-- Next.js 14 + TypeScript + Tailwind
-- Supabase (Postgres + Auth + Realtime)
-- DeepSeek R1 via OpenRouter (free LLM)
-- Playwright (browser automation)
-- Brave Search API
-- Gmail + Google Calendar APIs
-- Vercel (hosting + cron jobs)
+| Layer | Tech |
+|---|---|
+| Frontend | Next.js 14 (App Router) + TypeScript + Tailwind CSS |
+| Database / Auth / Realtime | Supabase (PostgreSQL + RLS) |
+| LLM | Groq (Llama 3.3 70B) primary → OpenRouter fallback |
+| Embeddings (optional) | Google Gemini or Jina (free tiers) |
+| Browser automation | Playwright (Chromium) |
+| Web search | Brave Search API |
+| Email / Calendar (optional) | Gmail + Google Calendar via OAuth |
+| Hosting / Cron | Vercel |
 
-All free tier. Total monthly cost target: **$0**.
+---
 
-## Design doc
+## Quick start (local)
 
-See [`docs/superpowers/specs/2026-06-06-autonomous-task-agent-design.md`](./docs/superpowers/specs/2026-06-06-autonomous-task-agent-design.md) — full architecture, 7 competitors analyzed, 6 success metrics, 50-task implementation breakdown.
+### 1. Prerequisites
+- Node.js 18+
+- A free [Supabase](https://supabase.com) project
+- A free [Groq API key](https://console.groq.com) (and/or [OpenRouter](https://openrouter.ai))
+- A free [Brave Search API key](https://brave.com/search/api/)
+
+### 2. Clone and install
+```bash
+git clone https://github.com/<you>/todo-agent.git
+cd todo-agent
+npm install
+npx playwright install chromium
+```
+
+### 3. Create the database
+Open your Supabase project → **SQL Editor**, paste the entire contents of
+[`supabase/schema.sql`](supabase/schema.sql), and click **Run**. This creates every table, the
+row-level-security policies, the done-task expiry trigger, and the screenshots storage bucket.
+
+### 4. Configure environment
+```bash
+cp .env.example .env.local
+```
+Fill in `.env.local`. The minimum to boot and run the agent:
+
+| Variable | Where to get it |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase → Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API (the `service_role` secret — keep it private) |
+| `NEXT_PUBLIC_ALLOWED_EMAIL` | the one email allowed to sign in (your own) |
+| `GROQ_API_KEY` | console.groq.com |
+| `BRAVE_SEARCH_API_KEY` | brave.com/search/api |
+| `CRON_SECRET` | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+
+Optional: `OPENROUTER_API_KEY` (LLM fallback), `GEMINI_API_KEY` or `JINA_API_KEY` (semantic
+workflow matching), `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` (Gmail + Calendar tools).
+
+> **Access lock:** auth is restricted to `NEXT_PUBLIC_ALLOWED_EMAIL`. If you leave it blank,
+> nobody can sign in. To support multiple users, turn `ALLOWED_EMAIL` in `src/lib/constants.ts`
+> into a list and adjust the equality checks.
+
+### 5. Run
+```bash
+npm run dev          # dashboard at http://localhost:3000
+```
+Sign in with the magic link sent to your allowed email, add a task (try *"Find the cheapest
+weekend flight from Seattle to Portland in July"*), then run the agent on demand:
+```bash
+npm run agent:run    # processes the queue once, in your terminal
+```
+Refresh the dashboard — the task moves to **Done** (with a cited report) or **Needs You**.
+
+---
+
+## Deploy to Vercel
+
+1. Push to GitHub (see below), then go to [vercel.com](https://vercel.com) → **Add New Project**
+   → import the repo.
+2. Under **Environment Variables**, add every key from your `.env.local`.
+3. **Deploy.** Copy the resulting URL (e.g. `https://todo-agent-xxx.vercel.app`).
+4. In **Supabase → Authentication → URL Configuration**, add that URL to **Site URL** and
+   **Redirect URLs**.
+5. If you use Google OAuth, add `https://your-url.vercel.app/api/connectors/google/callback` to
+   the authorized redirect URIs in Google Cloud Console.
+
+[`vercel.json`](vercel.json) schedules the cron jobs: `/api/agent/run` nightly at 04:00 UTC and
+`/api/cleanup` to remove expired done tasks.
+
+> **⚠️ Playwright on Vercel:** serverless functions can't run a bundled Chromium, so
+> browser-automation tasks won't work on Vercel as-is. Options: (a) connect Playwright to a hosted
+> browser like [browserless.io](https://browserless.io) — swap `chromium.launch()` for
+> `chromium.connect(wsUrl)` in `src/lib/agent/tools/browser.ts`; (b) run the agent on a small VPS;
+> or (c) deploy only the dashboard to Vercel and run `npm run agent:run` locally. Search,
+> file, Gmail, and Calendar tools work fine on Vercel either way.
+
+---
+
+## Push to GitHub
+
+With the [GitHub CLI](https://cli.github.com):
+```bash
+gh repo create todo-agent --public --source=. --remote=origin --push
+```
+Or manually:
+```bash
+git remote add origin https://github.com/<you>/todo-agent.git
+git branch -M main
+git push -u origin main
+```
+
+---
 
 ## Project structure
 
 ```
 src/
-  app/                      Next.js routes
-    page.tsx                Dashboard (3 tabs)
-    login/                  Magic link login
-    auth/callback/          OAuth callback
-    settings/               Connector management
+  app/
+    page.tsx                Dashboard (board / tabs)
+    login/                  Magic-link login (locked to one email)
+    analytics/              LLM token + cost dashboard
+    preferences/            View/edit learned agent memory
+    settings/               Connect Gmail / Calendar
     workflows/              View saved workflows
     api/
-      agent/run/            Night agent endpoint (Vercel Cron)
-      cleanup/              Expire done tasks
+      agent/run/            Night-agent entry point (Vercel Cron)
+      cleanup/              Delete expired done tasks
+      tasks/parse/          Natural-language task parsing
       connectors/google/    Gmail + Calendar OAuth
-  components/               UI components
+  components/               UI (Dashboard, TaskCard, AgentLiveView, StepsList, …)
   lib/
-    supabase/               DB client + server helpers
+    constants.ts            ALLOWED_EMAIL (from env)
+    types.ts                Shared types
+    supabase/               Browser + server (service-role) clients
     agent/
-      orchestrator.ts       The main agent loop
-      llm.ts                OpenRouter client
-      workflows.ts          Save & retrieve learned workflows
-      connectors.ts         Tool availability
+      orchestrator.ts       The agent loop: plan → execute → recover → report
+      llm.ts                Groq → OpenRouter, with token/cost logging
+      workflows.ts          Save + match learned workflows (semantic/keyword)
+      embeddings.ts         Gemini / Jina embeddings + cosine similarity
+      memory.ts             Extract + inject user preferences
+      nlu.ts                Freeform text → structured task
+      connectors.ts         Which tools are available per user
       tools/                search, browser, gmail, calendar, files
-supabase/migrations/        DB schema
-scripts/                    Local agent runner
-docs/                       Design spec
+supabase/schema.sql         Full database schema (run once)
+scripts/run-agent-local.ts  npm run agent:run
 ```
+
+---
+
+## Commands
+
+```bash
+npm run dev          # local dashboard
+npm run agent:run    # run the agent against the queue once
+npm run build        # production build (typecheck + compile)
+```
+
+---
+
+## License
+
+[MIT](LICENSE).

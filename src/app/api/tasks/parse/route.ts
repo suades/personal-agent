@@ -16,7 +16,7 @@ export const runtime = 'nodejs';
 export async function POST(request: Request) {
   const supabase = await supabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.email !== ALLOWED_EMAIL) {
+  if (!user || (user.email ?? '').toLowerCase() !== ALLOWED_EMAIL) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 

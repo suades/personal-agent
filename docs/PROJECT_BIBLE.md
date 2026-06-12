@@ -94,7 +94,7 @@ ToDoAgent/
     │   └── LinkifyText.tsx             # Renders markdown links and raw URLs as clickable <a> tags
     │
     └── lib/
-        ├── constants.ts                # ALLOWED_EMAIL = 'suadesai17@gmail.com'
+        ├── constants.ts                # ALLOWED_EMAIL (from NEXT_PUBLIC_ALLOWED_EMAIL env)
         ├── types.ts                    # Task, Workflow, WorkflowStep, Connector, AgentRun, AgentStep
         ├── supabase/
         │   ├── client.ts               # Browser-side Supabase client
@@ -308,7 +308,7 @@ Dashboard subscribes to Supabase Realtime on the `tasks` and `agent_runs` tables
 
 ### Auth
 - Magic link login via Supabase Auth
-- Locked to `ALLOWED_EMAIL` constant (`suadesai17@gmail.com`) in `src/lib/constants.ts`
+- Locked to the `ALLOWED_EMAIL` constant in `src/lib/constants.ts` (set via `NEXT_PUBLIC_ALLOWED_EMAIL`)
 - Enforcement: client-side on login page (prevents sending link) + server-side in `page.tsx` (checks session email, forces sign out if mismatch)
 
 ### Other Pages
@@ -321,7 +321,7 @@ Dashboard subscribes to Supabase Realtime on the `tasks` and `agent_runs` tables
 
 ```
 # Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://hoorfobebqxmyzgfmlai.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...      # Server-side agent writes (bypasses RLS)
 
