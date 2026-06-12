@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/client';
+import { ALLOWED_EMAIL } from '@/lib/constants';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -11,6 +12,14 @@ export default function LoginPage() {
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true); setError(null);
+
+    // ── Auth lock: only allow the owner's email ──
+    if (email.trim().toLowerCase() !== ALLOWED_EMAIL) {
+      setError('This agent is private. Access restricted.');
+      setLoading(false);
+      return;
+    }
+
     const supabase = supabaseBrowser();
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -22,12 +31,13 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-sm bg-panel border border-border rounded-2xl p-8">
+      <div className="w-full max-w-sm bg-panel border border-border rounded-2xl p-8 animate-fade-in-up shadow-2xl shadow-accent/5">
+        <div className="text-3xl mb-3">🌙</div>
         <h1 className="text-2xl font-semibold mb-1">ToDo Agent</h1>
         <p className="text-muted text-sm mb-6">Drop tasks. Agent does them at night.</p>
 
         {sent ? (
-          <div className="text-sm">
+          <div className="text-sm animate-fade-in">
             <p className="text-green-400 mb-2">✓ Check your inbox.</p>
             <p className="text-muted">We sent a magic link to <strong>{email}</strong>. Tap it on this device to sign in.</p>
           </div>

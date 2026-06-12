@@ -3,10 +3,80 @@
 @tailwind utilities;
 
 html, body { background: #0a0a0b; color: #e5e5e7; }
-body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+/* Clip any stray wide child so the page never scrolls sideways on mobile.
+   Kept on <html> (not an intermediate ancestor) so position: sticky still works. */
+html { overflow-x: hidden; }
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  /* keep content clear of notches / home indicators on mobile */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
 
 * { -webkit-tap-highlight-color: transparent; }
+
+/* iOS Safari zooms the page when a focused input's font-size is under 16px —
+   force 16px on touch-size screens so the layout never jumps. */
+@media (max-width: 640px) {
+  input, textarea, select { font-size: 16px !important; }
+}
+
+::selection { background: #7c5cff55; }
+
+/* slim dark scrollbars */
+* { scrollbar-width: thin; scrollbar-color: #26262c transparent; }
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-thumb { background: #26262c; border-radius: 3px; }
+*::-webkit-scrollbar-track { background: transparent; }
 
 .priority-high   { background: #ef4444; color: white; }
 .priority-medium { background: #f59e0b; color: black; }
 .priority-low    { background: #10b981; color: black; }
+
+/* card priority accent edge */
+.edge-high   { border-left: 3px solid #ef4444; }
+.edge-medium { border-left: 3px solid #f59e0b; }
+.edge-low    { border-left: 3px solid #10b981; }
+
+/* interactive card lift */
+.card-hover { transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease; }
+@media (hover: hover) {
+  .card-hover:hover {
+    border-color: #3a3a44;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* tap feedback on touch devices */
+.card-hover:active { transform: scale(0.995); }
+
+/* live-agent pulsing dot */
+.live-dot {
+  width: 8px; height: 8px; border-radius: 9999px; background: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+  animation: live-ping 1.6s ease-out infinite;
+}
+@keyframes live-ping {
+  0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  70%  { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* simple spinner for in-progress tasks */
+.spinner {
+  width: 12px; height: 12px; border-radius: 9999px;
+  border: 2px solid #26262c; border-top-color: #7c5cff;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* honor users who turn off animations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -23,20 +23,20 @@ export default function WorkflowsClient({ workflows }: { workflows: Workflow[] }
       ) : (
         <div className="space-y-2">
           {workflows.map(wf => (
-            <div key={wf.id} className="bg-panel border border-border rounded-xl p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium">{wf.name}</p>
-                  {wf.description && <p className="text-xs text-muted mt-0.5">{wf.description}</p>}
-                  <p className="text-[11px] text-muted mt-1">
+            <div key={wf.id} className="bg-panel border border-border rounded-xl p-4 card-hover animate-fade-in-up">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium break-words">{wf.name}</p>
+                  {wf.description && <p className="text-xs text-muted mt-0.5 break-words">{wf.description}</p>}
+                  <p className="text-[11px] text-muted mt-1 break-words">
                     Triggers: {wf.trigger_keywords.join(', ') || '—'} · Used {wf.use_count}×
                   </p>
                 </div>
-                <button onClick={() => del(wf.id)} className="text-xs text-muted hover:text-red-400">Delete</button>
+                <button onClick={() => del(wf.id)} className="shrink-0 text-xs text-muted hover:text-red-400 transition-colors">Delete</button>
               </div>
               <details className="mt-2">
                 <summary className="text-xs text-muted cursor-pointer">Show steps</summary>
-                <pre className="text-[11px] text-muted bg-bg border border-border rounded p-2 mt-2 overflow-auto">
+                <pre className="text-[11px] text-muted bg-bg border border-border rounded p-2 mt-2 overflow-auto max-h-64">
                   {JSON.stringify(wf.steps, null, 2)}
                 </pre>
               </details>

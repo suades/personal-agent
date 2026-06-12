@@ -23,13 +23,13 @@ export default function SettingsClient({ connectors }: { connectors: Connector[]
             const conn = map.get(c.name);
             const ok = conn?.status === 'connected';
             return (
-              <div key={c.name} className="bg-panel border border-border rounded-xl p-4 flex items-center justify-between">
-                <div>
+              <div key={c.name} className="bg-panel border border-border rounded-xl p-4 flex items-center justify-between gap-3">
+                <div className="min-w-0">
                   <p className="text-sm font-medium">{c.label} {ok && <span className="text-green-400 text-xs ml-1">✓ connected</span>}</p>
                   <p className="text-xs text-muted">{c.description}</p>
                 </div>
                 <a href={c.setupUrl}
-                  className={`text-xs px-3 py-1.5 rounded-lg ${ok ? 'bg-bg border border-border' : 'bg-accent text-white'}`}>
+                  className={`shrink-0 text-xs px-3 py-1.5 rounded-lg transition-colors ${ok ? 'bg-bg border border-border hover:border-muted' : 'bg-accent text-white hover:bg-accent/90'}`}>
                   {ok ? 'Reconnect' : 'Connect'}
                 </a>
               </div>

@@ -10,6 +10,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: '#0a0a0b',
+  // required for env(safe-area-inset-*) to work on notched iPhones
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
