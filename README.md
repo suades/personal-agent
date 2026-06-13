@@ -134,49 +134,6 @@ With the [GitHub CLI](https://cli.github.com):
 ```bash
 gh repo create personal-agent --public --source=. --remote=origin --push
 ```
-Or manually:
-```bash
-git remote add origin https://github.com/<you>/personal-agent.git
-git branch -M main
-git push -u origin main
-```
-
----
-
-## Project structure
-
-```
-src/
-  app/
-    page.tsx                Dashboard (board / tabs)
-    login/                  Magic-link login (locked to one email)
-    analytics/              LLM token + cost dashboard
-    preferences/            View/edit learned agent memory
-    settings/               Connect Gmail / Calendar
-    workflows/              View saved workflows
-    api/
-      agent/run/            Night-agent entry point (Vercel Cron)
-      cleanup/              Delete expired done tasks
-      tasks/parse/          Natural-language task parsing
-      connectors/google/    Gmail + Calendar OAuth
-  components/               UI (Dashboard, TaskCard, AgentLiveView, StepsList, …)
-  lib/
-    constants.ts            ALLOWED_EMAIL (from env)
-    types.ts                Shared types
-    supabase/               Browser + server (service-role) clients
-    agent/
-      orchestrator.ts       The agent loop: plan → execute → recover → report
-      llm.ts                Groq → OpenRouter, with token/cost logging
-      workflows.ts          Save + match learned workflows (semantic/keyword)
-      embeddings.ts         Gemini / Jina embeddings + cosine similarity
-      memory.ts             Extract + inject user preferences
-      nlu.ts                Freeform text → structured task
-      connectors.ts         Which tools are available per user
-      tools/                search, browser, gmail, calendar, files
-supabase/schema.sql         Full database schema (run once)
-scripts/run-agent-local.ts  npm run agent:run
-```
-
 ---
 
 ## Commands
