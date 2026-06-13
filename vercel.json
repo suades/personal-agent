@@ -1,6 +1,5 @@
 {
   "crons": [
-    { "path": "/api/agent/run", "schedule": "0 4 * * *" },
-    { "path": "/api/cleanup", "schedule": "* * * * *" }
+    { "path": "/api/cleanup", "schedule": "0 5 * * *" }
   ]
 }
