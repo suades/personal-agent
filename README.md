@@ -1,4 +1,4 @@
-# ToDo Agent
+# Personal Agent
 
 **Drop tasks. An AI agent does them while you sleep.**
 
@@ -59,8 +59,8 @@ Built to run entirely on free tiers. Target cost: **$0/month**.
 
 ### 2. Clone and install
 ```bash
-git clone https://github.com/<you>/todo-agent.git
-cd todo-agent
+git clone https://github.com/<you>/personal-agent.git
+cd personal-agent
 npm install
 npx playwright install chromium
 ```
@@ -110,7 +110,7 @@ Refresh the dashboard — the task moves to **Done** (with a cited report) or **
 1. Push to GitHub (see below), then go to [vercel.com](https://vercel.com) → **Add New Project**
    → import the repo.
 2. Under **Environment Variables**, add every key from your `.env.local`.
-3. **Deploy.** Copy the resulting URL (e.g. `https://todo-agent-xxx.vercel.app`).
+3. **Deploy.** Copy the resulting URL (e.g. `https://personal-agent-xxx.vercel.app`).
 4. In **Supabase → Authentication → URL Configuration**, add that URL to **Site URL** and
    **Redirect URLs**.
 5. If you use Google OAuth, add `https://your-url.vercel.app/api/connectors/google/callback` to
@@ -132,11 +132,11 @@ Refresh the dashboard — the task moves to **Done** (with a cited report) or **
 
 With the [GitHub CLI](https://cli.github.com):
 ```bash
-gh repo create todo-agent --public --source=. --remote=origin --push
+gh repo create personal-agent --public --source=. --remote=origin --push
 ```
 Or manually:
 ```bash
-git remote add origin https://github.com/<you>/todo-agent.git
+git remote add origin https://github.com/<you>/personal-agent.git
 git branch -M main
 git push -u origin main
 ```
